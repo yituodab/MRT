@@ -52,7 +52,7 @@ public class TankHUD implements IGuiOverlay {
             int n = cannonball.getNumber();
             if (player != null && player.isCreative()) n = 999;
             guiGraphics.blit(new ResourceLocation(ModularTank.MODID, "textures/hud/cannonball_icons/" +
-                            cannonball.getData().type.toString().toLowerCase() + ".png"),
+                            cannonball.getData().getType().toString().toLowerCase() + ".png"),
                     renderStartX + number * 32, renderStartY, 0, 0, 32, 32, 32, 32);
             guiGraphics.drawString(font, String.valueOf(n), renderStartX + number * 32 + 32 - font.width(String.valueOf(n)), renderStartY, 0xFFFFFF, false);
             guiGraphics.drawString(font, String.valueOf(number), renderStartX + number * 32 + 14, renderStartY + 23, 0xFFFFFF, false);

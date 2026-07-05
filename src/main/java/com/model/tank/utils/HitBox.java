@@ -4,13 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 public class HitBox extends AABB {
     private float YRot = 0;
     private float XRot = 0;
+    private AABB MaxHitBox;
 
     public HitBox(BlockPos pPos,float XRot,float YRot) {
         this((double)pPos.getX(), (double)pPos.getY(), (double)pPos.getZ(), (double)(pPos.getX() + 1), (double)(pPos.getY() + 1), (double)(pPos.getZ() + 1),XRot,YRot);
@@ -24,22 +23,31 @@ public class HitBox extends AABB {
         this.XRot = XRot;
         this.YRot = YRot;
     }
-    public Vec3 getPos(){
-        return new Vec3((maxX-minX)/2+minX,(maxY-minY)/2+minY,(maxY-minY)/2+minY);
+
+    public HitBox(double pX1, double pY1, double pZ1, double pX2, double pY2, double pZ2) {
+        super(pX1, pY1, pZ1, pX2, pY2, pZ2);
+        double size = (new Vec3(minX,minY,minZ).distanceTo(new Vec3(maxX,maxY,maxZ)))/2;
+        Vec3 Pos = this.getCenter();
+        this.MaxHitBox = new AABB(Pos.add(size,size,size),Pos.subtract(size,size,size));
     }
     public HitBox(double pX1, double pY1, double pZ1, double pX2, double pY2, double pZ2,float XRot,float YRot) {
-        super(pX1, pY1, pZ1, pX2, pY2, pZ2);
+        this(pX1, pY1, pZ1, pX2, pY2, pZ2);
         this.XRot = XRot;
         this.YRot = YRot;
     }
 
     @Override
     public Optional<Vec3> clip(Vec3 pFrom, Vec3 pTo) {
-        Vec3 Pos = getPos();
+        Vec3 Pos = getCenter();
         Vec3 From = pFrom.subtract(Pos);
         Vec3 To = pTo.subtract(pTo);
         Vec3 from = From.xRot(XRot*0.017453292F).yRot(YRot*0.017453292F).add(pFrom);
         Vec3 to = To.xRot(XRot*0.017453292F).yRot(YRot*0.017453292F).add(pTo);
         return super.clip(from, to);
+    }
+
+    @Override
+    public boolean intersects(double pX1, double pY1, double pZ1, double pX2, double pY2, double pZ2) {
+        return true;// MaxHitBox.intersects(pX1, pY1, pZ1, pX2, pY2, pZ2);
     }
 }

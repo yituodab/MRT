@@ -3,17 +3,21 @@ package com.model.tank.resource;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.model.tank.ModularTank;
+import com.model.tank.api.resource.serializer.MaterialDeserializer;
+import com.model.tank.api.resource.serializer.UUIDSerializer;
 import com.model.tank.api.resource.serializer.Vec3Serializer;
 import com.model.tank.resource.client.AssetsLoader;
 import com.model.tank.resource.client.data.tank.TankDisplay;
+import com.model.tank.resource.data.Recipe;
+import com.model.tank.resource.data.TechnologyTree;
 import com.model.tank.resource.data.index.TankIndex;
 import com.model.tank.resource.data.tank.CannonballData;
 import com.model.tank.resource.data.tank.TankData;
 import com.model.tank.resource.data.tank.TankIndexData;
 import com.model.tank.resource.loader.CannonballDataLoader;
+import com.model.tank.resource.loader.RecipesLoader;
 import com.model.tank.resource.loader.TankDataLoader;
 import com.model.tank.resource.loader.TankIndexLoader;
-import com.model.tank.api.resource.serializer.UUIDSerializer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -42,6 +46,7 @@ import static com.model.tank.ModularTank.MODID;
 public class DataLoader {
     public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+            .registerTypeAdapter(Recipe.Material.class, new MaterialDeserializer())
             .registerTypeAdapter(UUID.class, new UUIDSerializer())
             .registerTypeAdapter(Vec3.class, new Vec3Serializer())
             .create();
@@ -52,6 +57,8 @@ public class DataLoader {
     private static final HashMap<ResourceLocation, CannonballData> CANNONBALLS = new HashMap<>();
     private static final HashMap<ResourceLocation, Model> MODELS = new HashMap<>();
     private static final HashMap<ResourceLocation, TankDisplay> TANK_DISPLAY = new HashMap<>();
+    private static final HashMap<ResourceLocation, Recipe> RECIPES = new HashMap<>();
+    private static final HashMap<Countries, TechnologyTree> TECHNOLOGY_TREES = new HashMap<>();
 
     public static final ResourceLocation DEFAULT_TANK_ID = new ResourceLocation(MODID, "default");
 
@@ -100,6 +107,8 @@ public class DataLoader {
                 TankDataLoader.loadTankDataFromDir(namespace);
 
                 TankIndexLoader.loadTankIndexFromDir(namespace);
+                RecipesLoader.loadRecipesFromDir(namespace);
+                TechnologyTree.init();
             });
         } catch (IOException e) {
             ModularTank.LOGGER.error("Load {} failed",dataPath,e);
@@ -108,28 +117,64 @@ public class DataLoader {
 
     @SubscribeEvent
     public static void atReload(AddReloadListenerEvent event){
-        loadData();
         loadAssets();
+        loadData();
     }
 
     public static TankDisplay getTankDisplay(ResourceLocation id) {
-        return TANK_DISPLAY.get(id);
+        TankDisplay display = TANK_DISPLAY.get(id);
+        if(display == null){
+            return TANK_DISPLAY.get(DEFAULT_TANK_ID);
+        }
+        return display;
     }
     public static TankData getTankData(ResourceLocation id){
-        return TANKS.get(id);
+        TankData data = TANKS.get(id);
+        if(data == null){
+            return TANKS.get(DEFAULT_TANK_ID);
+        }
+        return data;
     }
     public static Set<Map.Entry<ResourceLocation, TankData>> getAllTanks() {
         return TANKS.entrySet();
     }
     public static TankIndex getTankIndex(ResourceLocation id) {
-        return TANK_INDEX.get(id);
+        TankIndex index = TANK_INDEX.get(id);
+        if(index == null){
+            return TANK_INDEX.get(DEFAULT_TANK_ID);
+        }
+        return index;
+    }public static Set<Map.Entry<ResourceLocation, TankIndex>> getAllTankIndexes() {
+        return TANK_INDEX.entrySet();
     }
     public static Model getModel(ResourceLocation id) {
-        return MODELS.get(id);
+        Model model = MODELS.get(id);
+        if(model == null){
+            return MODELS.get(DEFAULT_TANK_ID);
+        }
+        return model;
     }
+
+    public static Recipe getRecipe(ResourceLocation id){
+        Recipe recipe = RECIPES.get(id);
+        if(recipe == null){
+            return RECIPES.get(DEFAULT_TANK_ID);
+        }
+        return recipe;
+    }
+
+    public static Set<Map.Entry<ResourceLocation, Recipe>> getAllRecipes() {
+        return RECIPES.entrySet();
+    }
+
     public static CannonballData getCannonballData(ResourceLocation id){
         return CANNONBALLS.get(id);
     }
+
+    public static TechnologyTree getTechnologyTree(Countries country) {
+        return TECHNOLOGY_TREES.get(country);
+    }
+
     public static void putTankDisplay(ResourceLocation id, TankDisplay display){
         TANK_DISPLAY.put(id, display);
     }
@@ -144,6 +189,12 @@ public class DataLoader {
     }
     public static void putCannonballData(ResourceLocation id,CannonballData data){
         CANNONBALLS.put(id, data);
+    }
+    public static void putRecipe(ResourceLocation id,Recipe data){
+        RECIPES.put(id, data);
+    }
+    public static void putTechnologyTree(Countries country, TechnologyTree tree){
+        TECHNOLOGY_TREES.put(country,tree);
     }
 
     /**

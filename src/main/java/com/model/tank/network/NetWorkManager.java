@@ -1,6 +1,7 @@
 package com.model.tank.network;
 
 import com.model.tank.ModularTank;
+import com.model.tank.network.C2S.ClientCraftVehicle;
 import com.model.tank.network.C2S.ClientTankReload;
 import com.model.tank.network.C2S.ClientTankShoot;
 import com.model.tank.network.S2C.ServerTankShoot;
@@ -23,6 +24,8 @@ public class NetWorkManager {
         return ID++;
     }
     public static void init(){
+        CHANNEL.messageBuilder(ClientCraftVehicle.class,getID()).encoder(ClientCraftVehicle::encode).
+                decoder(ClientCraftVehicle::decode).consumerMainThread(ClientCraftVehicle::run).add();
         CHANNEL.messageBuilder(ClientTankShoot.class,getID()).encoder(ClientTankShoot::encode).
                 decoder(ClientTankShoot::decode).consumerMainThread(ClientTankShoot::run).add();
         CHANNEL.messageBuilder(ServerTankShoot.class,getID()).encoder(ServerTankShoot::encode).

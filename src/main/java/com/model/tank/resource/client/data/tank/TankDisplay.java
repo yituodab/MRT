@@ -8,9 +8,11 @@ public class TankDisplay {
     @SerializedName("name")
     private String name = "mrt.tanks.default";
     @SerializedName("model")
-    private ResourceLocation model = new ResourceLocation(ModularTank.MODID, "geo/model.geo.json");
+    private ResourceLocation model = new ResourceLocation(ModularTank.MODID, "default.json");
     @SerializedName("texture")
-    private ResourceLocation texture = new ResourceLocation(ModularTank.MODID, "textures/texture.png");;
+    private ResourceLocation texture = new ResourceLocation(ModularTank.MODID, "default.png");;
+    @SerializedName("icon")
+    private ResourceLocation icon = new ResourceLocation(ModularTank.MODID, "default_icon.png");
 
     public String getName() {
         return name;
@@ -20,5 +22,9 @@ public class TankDisplay {
     }
     public ResourceLocation getTexture() {
         return texture;
+    }
+
+    public ResourceLocation getIcon() {
+        return icon;
     }
 }

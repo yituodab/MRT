@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "mrt:block/vehicle_maker"
+    }
+  }
+}

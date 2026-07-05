@@ -1,7 +1,6 @@
 package com.model.tank.entities;
 
 
-import com.model.tank.api.client.interfaces.IEntity;
 import com.model.tank.api.client.interfaces.ITargetEntity;
 import com.model.tank.api.entity.ModularEntity;
 import com.model.tank.api.nbt.TankEntityDataManager;
@@ -49,17 +48,18 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
     private TankDisplay display;
     private ResourceLocation tankID;
     private List<Module.Armor> armors;
+    private ModDimensions dimensions;
     private float tickSteeringSpeed;
     private double tickMaxSpeed;
     private double tickBackSpeed;
     private float tickAcceleration;
-    private float addSpeed;
     private boolean inputLeft;
     private boolean inputRight;
     private boolean inputUp;
     private boolean inputDown;
     private int reloadTime = 0;
     private int maxReloadTime = 0;
+    private int direction = 1;// 向前为+1，向后为-1
     public TankEntity(EntityType<?> p_19870_, Level p_19871_, TankIndex tank, ResourceLocation id) {
         super(p_19870_, p_19871_);
         this.tankID = id;
@@ -93,7 +93,7 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
             }
         }
         float[] boundingBox = tank.getBoundingBox();
-        ((IEntity)this).setDimensions(new ModDimensions(boundingBox[0],boundingBox[1],boundingBox[2],true));
+        this.dimensions = new ModDimensions(boundingBox[0],boundingBox[1],boundingBox[2],true);
     }
 
 
@@ -120,7 +120,12 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
 
     @Override
     public EntityDimensions getDimensions(Pose pose) {
-        return ((IEntity)this).getDimensions();
+        return dimensions;
+    }
+
+    @Override
+    public void setPos(double p_20210_, double p_20211_, double p_20212_) {
+        super.setPos(p_20210_, p_20211_, p_20212_);
     }
 
     public double getCurrentSpeed() {
@@ -132,20 +137,23 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
 
     @Override
     protected AABB makeBoundingBox() {
-        if(((IEntity)this).getDimensions() instanceof ModDimensions modDimensions)
-            return modDimensions.makeBoundingBox(this.position(),this.getXRot(),this.getYRot());
-        return super.makeBoundingBox();
+        if(this.dimensions == null){
+            return super.makeBoundingBox();
+        }
+        return this.dimensions.makeBoundingBox(this.position(),this.getXRot(),this.getYRot());
     }
 
     @Override
     public void tick() {
         super.tick();
         if(this.level().isClientSide()){
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.5F));
             controlTank();
         }
         refreshReloadTime();
         this.move(MoverType.SELF,getDeltaMovement());
     }
+
     public boolean isReload(){
         return reloadTime > 0;
     }
@@ -208,10 +216,12 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
     }
 
     public void controlTank() {
+        double acceleration = tickAcceleration;
         if(this.isVehicle()){
-            Vec3 deltaMovement = getDeltaMovement();
+            Vec3 deltaMovement;
             double currentSpeed = getCurrentSpeed();
             float yRot = getYRot();
+            // 转向
             if(inputLeft){
                 yRot -= tickSteeringSpeed;
             }
@@ -219,21 +229,28 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
                 yRot += tickSteeringSpeed;
             }
             this.setRot(yRot,getXRot());
-            if(!inputUp && !inputDown){
-                addSpeed = addSpeed < 0 ? -0.005F : 0.005F;
+
+            if(inputUp){
+                double a = tickMaxSpeed - currentSpeed;
+                if (direction == 1 && a <= tickAcceleration){
+                    acceleration = a * direction;
+                    if(a < 0)
+                        acceleration = 0;
+                }
+                acceleration = acceleration * direction;
             }
-            if(inputUp && currentSpeed < tickMaxSpeed){
-                if(tickMaxSpeed -currentSpeed<tickAcceleration)
-                    addSpeed += (float) ((tickMaxSpeed -currentSpeed)/ tickMaxSpeed);
-                else
-                    addSpeed += 1F;
+            if(inputDown){
+                double a = tickBackSpeed - currentSpeed;
+                if (direction == -1 && a <= tickAcceleration){
+                    acceleration = a * direction;
+                    if(a < 0)
+                        acceleration = 0;
+                }
+                acceleration = acceleration * direction;
             }
-            if(inputDown && !(addSpeed <= 0 && currentSpeed > tickBackSpeed)){
-                addSpeed -= 0.5F;
-            }
-            deltaMovement = new Vec3(Mth.sin(-this.getYRot() * 0.017453292F)*tickAcceleration*addSpeed,deltaMovement.y,
-                    Mth.cos(this.getYRot() * 0.017453292F)*tickAcceleration*addSpeed);
-            this.setDeltaMovement(deltaMovement);
+            deltaMovement = new Vec3(Mth.sin(-this.getYRot() * 0.017453292F)*acceleration,0,
+                     Mth.cos(this.getYRot() * 0.017453292F)*acceleration);
+            this.addDeltaMovement(deltaMovement);
         }
     }
 
@@ -241,20 +258,12 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
     public void load(CompoundTag pCompound) {
         super.load(pCompound);
         if(pCompound.contains(TANK_ID)){
-            this.tankID = new ResourceLocation(pCompound.getString(TANK_ID));
-            TankIndex index = DataLoader.getTankIndex(this.tankID);
-            if(index != null){
-                fromTankIndex(index);
-            }
+            getDataFromNBT(pCompound);
         }
     }
 
-    @Override
-    protected void defineSynchedData() {}
-
-    @Override
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
-        this.tankID = new ResourceLocation(compoundTag.getString("TankID"));
+    private void getDataFromNBT(CompoundTag compoundTag){
+        this.tankID = new ResourceLocation(compoundTag.getString(TANK_ID));
         TankIndex tankIndex = DataLoader.getTankIndex(tankID);
         fromTankIndex(tankIndex);
         CompoundTag cannonballs = compoundTag.getCompound("cannonballs");
@@ -269,9 +278,8 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
         }));
     }
 
-    @Override
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
-        compoundTag.putString("TankID", this.tankID.toString());
+    private void putDataToNBT(CompoundTag compoundTag){
+        compoundTag.putString(TANK_ID, this.tankID.toString());
         CompoundTag cannonballs = new CompoundTag();
         CompoundTag modules = new CompoundTag();
         this.cannonballs.forEach((id, cannonball)-> cannonballs.putInt(id.toString(), cannonball.getNumber()));
@@ -279,6 +287,21 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
         compoundTag.put("cannonballs", cannonballs);
         compoundTag.put("modules", modules);
     }
+
+    @Override
+    protected void defineSynchedData() {}
+
+    @Override
+    protected void readAdditionalSaveData(CompoundTag compoundTag) {
+        getDataFromNBT(compoundTag);
+    }
+
+    @Override
+    protected void addAdditionalSaveData(CompoundTag compoundTag) {
+        putDataToNBT(compoundTag);
+    }
+
+
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {

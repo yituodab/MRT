@@ -6,7 +6,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.lang.reflect.Type;
 
-public class Vec3Serializer  implements JsonDeserializer<Vec3>, JsonSerializer<Vec3> {
+public class Vec3Serializer implements JsonDeserializer<Vec3>, JsonSerializer<Vec3> {
     @Override
     public Vec3 deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         if(!json.isJsonArray()){

@@ -70,7 +70,7 @@ public class AssetsLoader {
         try(InputStream inputStream = Files.newInputStream(path)){
             String json = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             TankDisplay display = DataLoader.GSON.fromJson(json, TankDisplay.class);
-            DataLoader.putTankDisplay(new ResourceLocation(modid, path.getFileName().toString()), display);
+            DataLoader.putTankDisplay(new ResourceLocation(modid, path.getFileName().toString().replace(".json","")), display);
         } catch (Exception e) {
             ModularTank.LOGGER.error("Load display fail,because",e);
         }
