@@ -9,12 +9,15 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 import java.util.Map;
 
 public class TankHUD implements IGuiOverlay {
+    public static final float DEFAULT_H_FOV = 102.4F;
     @Override
     public void render(ForgeGui forgeGui, GuiGraphics guiGraphics, float v, int width, int height) {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -25,6 +28,7 @@ public class TankHUD implements IGuiOverlay {
             // 瞄具HUD
             if(((ILocalPlayer)player).isAim())
                 renderTankAim(guiGraphics, width, height);
+            else renderCrosshairs(guiGraphics,width,height,tank,player);
             renderTankCannonballs(guiGraphics, tank, width, height);
         }
     }
@@ -38,6 +42,24 @@ public class TankHUD implements IGuiOverlay {
     public void renderTankAim(GuiGraphics guiGraphics, int width, int height){
         guiGraphics.blit(new ResourceLocation(ModularTank.MODID, "textures/hud/aim.png"),
                 0,0,0,0,width,height,width,height);
+    }
+    public void renderCrosshairs(GuiGraphics guiGraphics, int width, int height, TankEntity tank, Player player){
+        float YRot = (player.getYHeadRot()+360.0F)%360.0F;
+        if(Mth.clamp(YRot, 360-DEFAULT_H_FOV/2,360) == YRot || Mth.clamp(YRot, 0,DEFAULT_H_FOV/2) == YRot){
+            if(Mth.clamp(tank.getTurretYRot(),
+                    (YRot-DEFAULT_H_FOV/2+360)%360,
+                    (YRot+DEFAULT_H_FOV/2+360)%360) == tank.getTurretYRot())return;
+            if(Mth.clamp(tank.getTurretYRot(),0,(YRot+DEFAULT_H_FOV/2+360)%360) == tank.getTurretYRot()){
+                YRot = tank.getTurretYRot()+360-(YRot-DEFAULT_H_FOV/2+360)%360;
+            }else YRot = tank.getTurretYRot() - (YRot-DEFAULT_H_FOV/2+360)%360;
+        }else if(Mth.clamp(tank.getTurretYRot(),
+                YRot-DEFAULT_H_FOV/2,
+                YRot+DEFAULT_H_FOV/2) == tank.getTurretYRot())
+            YRot = tank.getTurretYRot()-(YRot-DEFAULT_H_FOV/2);
+        else return;
+        int X = (int)(YRot/DEFAULT_H_FOV*width);
+        guiGraphics.blit(new ResourceLocation(ModularTank.MODID, "textures/hud/crosshairs.png"),
+                X-16,height/2-16,0,0,16,16,16,16);
     }
     public void renderTankCannonballs(GuiGraphics guiGraphics, TankEntity tank, int width, int height){
         Minecraft mc = Minecraft.getInstance();

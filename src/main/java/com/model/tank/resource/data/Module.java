@@ -6,12 +6,14 @@ import net.minecraft.world.phys.Vec3;
 
 public class Module {
      public static enum Type{
-        UNKNOWN,
-        ENGINE,
-        OIL_TANK,
-        AMMO_RACKS,
-        CANNON,
-        LATCH
+         UNKNOWN,
+         OTHER,
+         ENGINE,
+         OIL_TANK,
+         AMMO_RACKS,
+         CANNON,
+         LATCH,
+         STEERiNG_GEAR
     }
     @SerializedName("id")
     private int id = 0;
@@ -21,7 +23,7 @@ public class Module {
     private Vec3 position = new Vec3(0,0,0);
     @SerializedName("size")
     private Vec3 size = new Vec3(0,0,0);
-    @SerializedName("maxHealth")
+    @SerializedName("max_health")
     private int maxHealth = 100;
     public HitBox getHitBox() {
         return new HitBox(position.subtract(size.scale((double)1/2)),position.add(size.scale((double)1/2)),0,0);
@@ -39,24 +41,24 @@ public class Module {
         return position;
     }
     // 炮
-    @SerializedName("reloadTime")
+    @SerializedName("reload_time")
     private float reloadTime = 0;
     public float getReloadTime() {
         return reloadTime;
     }
     // 引擎
-    @SerializedName("maxSpeed")
-    private double maxSpeed = 11;
-    @SerializedName("backSpeed")
-    private double backSpeed = 5;
-    @SerializedName("steeringSpeed")
+    @SerializedName("max_speed")
+    private double maxSpeed = 36;
+    @SerializedName("back_max_speed")
+    private double backSpeed = 9;
+    @SerializedName("steering_speed")
     private float steeringSpeed = 20;
     @SerializedName("acceleration")
     private float acceleration = 1;
     public double getMaxSpeed() {
         return maxSpeed;
     }
-    public double getBackSpeed() {
+    public double getBackMaxSpeed() {
         return backSpeed;
     }
     public float getSteeringSpeed() {
@@ -64,6 +66,12 @@ public class Module {
     }
     public float getAcceleration() {
         return acceleration;
+    }
+    // 方向机
+    @SerializedName("turret_steering_speed")
+    private float turretSteeringSpeed = 20;
+    public float getTurretSteeringSpeed() {
+        return turretSteeringSpeed;
     }
 
     public static class Armor{
