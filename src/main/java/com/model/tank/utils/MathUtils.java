@@ -35,4 +35,10 @@ public class MathUtils {
         }
         return list;
     }
+    public static Number NoZero(Number number){
+        return NoZero(number, 1);
+    }
+    public static Number NoZero(Number number,Number default_number){
+        return number.equals(0) ? default_number : number;
+    }
 }

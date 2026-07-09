@@ -18,5 +18,12 @@
   "key.mrt.7": "Cannonball Seven",
   "key.mrt.8": "Cannonball Eight",
   "key.mrt.9": "Cannonball Nine",
-  "key.mrt.refit": "Refit Tank"
+  "key.mrt.refit": "Refit Tank",
+  "mrt.gui.craft": "Craft",
+  "death.attack.mrt.cannonball": "%1$s 被 %2$s 击穿了",
+  "death.attack.mrt.cannonball.item": "%1$s 被 %2$s 击穿了",
+  "death.attack.mrt.ignite": "%1$s 死于 %2$s 引起的车辆起火",
+  "death.attack.mrt.ignite.item": "%1$s 死于 %2$s 引起的车辆起火",
+  "death.attack.mrt.on_hit_ammo": "%1$s 死于 %2$s 引起的殉爆",
+  "death.attack.mrt.on_hit_ammo.item": "%1$s 死于 %2$s 引起的殉爆"
 }

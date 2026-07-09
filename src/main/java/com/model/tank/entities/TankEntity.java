@@ -14,6 +14,7 @@ import com.model.tank.resource.data.index.TankIndex;
 import com.model.tank.resource.data.tank.CannonballData;
 import com.model.tank.resource.data.tank.TankData;
 import com.model.tank.utils.MRTEntityHitResult;
+import com.model.tank.utils.MathUtils;
 import com.model.tank.utils.ModDimensions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -45,21 +46,31 @@ import java.util.Map;
 public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnData, TankEntityDataManager, ITargetEntity {
     private final Map<ResourceLocation, Cannonball> cannonballs = new HashMap<>();
     private ResourceLocation currentCannonball;
+
     private TankDisplay display;
     private ResourceLocation tankID;
     private List<Module.Armor> armors;
+
+    private float turretXRot = 0;
+    private float turretYRot = 0;
+
     private ModDimensions dimensions;
-    private float tickSteeringSpeed;
-    private double tickMaxSpeed;
-    private double tickBackSpeed;
-    private float tickAcceleration;
+
+    private float tickSteeringSpeed = 1.0F;
+    private double tickMaxSpeed = 0.5F;
+    private double tickBackMaxSpeed = 0.125F;
+    private float tickAcceleration = 0.05F;
+    private float tickTurretSteeringSpeed = 1.0F;
+
     private boolean inputLeft;
     private boolean inputRight;
     private boolean inputUp;
     private boolean inputDown;
+
     private int reloadTime = 0;
     private int maxReloadTime = 0;
-    private int direction = 1;// 向前为+1，向后为-1
+    private double direction = 0;// 前进为正数，后退为负数
+
     public TankEntity(EntityType<?> p_19870_, Level p_19871_, TankIndex tank, ResourceLocation id) {
         super(p_19870_, p_19871_);
         this.tankID = id;
@@ -86,9 +97,12 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
                 }
                 case ENGINE -> {
                     this.tickSteeringSpeed = module.getSteeringSpeed() / 20;
-                    this.tickAcceleration = module.getAcceleration() /20;
-                    this.tickBackSpeed = module.getBackSpeed() / 20;
-                    this.tickMaxSpeed = module.getMaxSpeed() / 20;
+                    this.tickAcceleration = module.getAcceleration() / 20;
+                    this.tickMaxSpeed = module.getMaxSpeed() / 3.6 / 20;
+                    this.tickBackMaxSpeed = module.getBackMaxSpeed() / 3.6 / 20;
+                }
+                case STEERiNG_GEAR -> {
+                    this.tickTurretSteeringSpeed = module.getTurretSteeringSpeed() / 20;
                 }
             }
         }
@@ -147,11 +161,15 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
     public void tick() {
         super.tick();
         if(this.level().isClientSide()){
-            this.setDeltaMovement(this.getDeltaMovement().scale(0.5F));
             controlTank();
         }
         refreshReloadTime();
         this.move(MoverType.SELF,getDeltaMovement());
+    }
+
+    @Override
+    public boolean isNoGravity() {
+        return false;
     }
 
     public boolean isReload(){
@@ -174,7 +192,7 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
             int number = currentCannonball.getNumber();
             if((number > 0 || isCreative) && !isReload()){
                 CannonballEntity cannonball = new CannonballEntity(ModEntities.CANNONBALLENTITY.get(), level, player, cannonballData, id,
-                        player.getXRot(), player.getYRot(), player.getEyePosition());
+                        this.turretXRot, this.turretYRot, player.getEyePosition());
                 level.addFreshEntity(cannonball);
                 // 减少炮弹数
                 if(!isCreative)currentCannonball.setNumber(number - 1);
@@ -216,42 +234,76 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
     }
 
     public void controlTank() {
-        double acceleration = tickAcceleration;
-        if(this.isVehicle()){
+        if(this.isVehicle()) {
             Vec3 deltaMovement;
             double currentSpeed = getCurrentSpeed();
             float yRot = getYRot();
             // 转向
-            if(inputLeft){
+            if (inputLeft) {
                 yRot -= tickSteeringSpeed;
             }
-            if(inputRight) {
+            if (inputRight) {
                 yRot += tickSteeringSpeed;
             }
-            this.setRot(yRot,getXRot());
+            this.setRot(yRot, getXRot());
 
-            if(inputUp){
-                double a = tickMaxSpeed - currentSpeed;
-                if (direction == 1 && a <= tickAcceleration){
-                    acceleration = a * direction;
-                    if(a < 0)
-                        acceleration = 0;
+            float XRot = this.tickTurretSteeringSpeed;
+            float YRot = this.tickTurretSteeringSpeed;
+            if (this.getControllingPassenger() != null){
+                // 这一段用ds写的
+                float b = this.getControllingPassenger().getYHeadRot() % 360.0F;
+                if (b < 0) {
+                    b += 360.0F;
                 }
-                acceleration = acceleration * direction;
+                float a = b - this.turretYRot;
+                while (a > 180.0F) {
+                    a -= 360.0F;
+                }
+                while (a < -180.0F) {
+                    a += 360.0F;
+                }
+                YRot = Mth.clamp(a, -YRot, YRot);
+                YRot = this.turretYRot + YRot;
+                YRot = YRot % 360.0F;
+                if (YRot < 0) {
+                    YRot += 360.0F;
+                }
+                this.setTurretRot(XRot, YRot);
+                //
+            }
+
+            double acceleration = 0;
+            if(inputUp){
+                acceleration = tickAcceleration;
+                direction++;
             }
             if(inputDown){
-                double a = tickBackSpeed - currentSpeed;
-                if (direction == -1 && a <= tickAcceleration){
-                    acceleration = a * direction;
-                    if(a < 0)
-                        acceleration = 0;
-                }
-                acceleration = acceleration * direction;
+                acceleration = tickAcceleration;
+                direction--;
             }
-            deltaMovement = new Vec3(Mth.sin(-this.getYRot() * 0.017453292F)*acceleration,0,
-                     Mth.cos(this.getYRot() * 0.017453292F)*acceleration);
+            double current = currentSpeed + acceleration;
+            if (direction > 0)
+                if (current >= this.tickMaxSpeed) {
+                    direction = current / MathUtils.NoZero(this.tickMaxSpeed).doubleValue();
+                    acceleration = Mth.clamp(this.tickMaxSpeed - currentSpeed,0,acceleration);
+                }
+            if (direction < 0){
+                if (current >= this.tickBackMaxSpeed) {
+                    direction = -(current / MathUtils.NoZero(this.tickBackMaxSpeed).doubleValue());
+                    acceleration = Mth.clamp(this.tickBackMaxSpeed - currentSpeed,0,acceleration);
+                }
+                acceleration *= -1;
+            }
+            deltaMovement = new Vec3(
+                    Mth.sin(-this.getYRot() * 0.017453292F)*acceleration,
+                    0,
+                    Mth.cos(this.getYRot() * 0.017453292F)*acceleration);
             this.addDeltaMovement(deltaMovement);
         }
+    }
+    public void setTurretRot(float XRot, float YRot){
+        this.turretXRot = XRot % 360.0F;
+        this.turretYRot = YRot % 360.0F;
     }
 
     @Override
@@ -350,10 +402,14 @@ public class TankEntity extends ModularEntity implements IEntityAdditionalSpawnD
     public ResourceLocation getTextureLocation() {return display.getTexture();}
     public List<Module> getModules() {return modules;}
     public List<Module.Armor> getArmors() {return armors;}
+
+    public float getTurretXRot() {return turretXRot;}
+    public float getTurretYRot() {return turretYRot;}
+
     @Override
     public Packet<ClientGamePacketListener> getAddEntityPacket() {return NetworkHooks.getEntitySpawningPacket(this);}
     @Deprecated
-    public TankEntity(EntityType<?> p_19870_, Level p_19871_) {super(p_19870_, p_19871_);}
+    public TankEntity(EntityType<?> p_19870_, Level p_19871_) {this(p_19870_,p_19871_, DataLoader.getTankIndex(DataLoader.DEFAULT_TANK_ID),DataLoader.DEFAULT_TANK_ID);}
 
     public static class Cannonball{
         private final CannonballData data;

@@ -57,7 +57,7 @@ public class TechnologyTree {
                 Map.Entry<ResourceLocation, TechnologyRecipe> recipe = iterator.next();
                 // 如果该配方没有上个配方，那就将其丢到第一列
                 if(recipe.getValue().last_recipe.isEmpty()){
-                    if(recipes_to_render.isEmpty())recipes_to_render.add(0, new ArrayList<>());
+                    if(recipes_to_render.isEmpty())recipes_to_render.add(new ArrayList<>());
                     recipes_to_render.get(0).add(recipe.getValue());
                     iterator.remove();
                     continue;
@@ -67,7 +67,7 @@ public class TechnologyTree {
                     for(TechnologyRecipe last : recipes_to_render.get(current_level-1)){
                         for (ResourceLocation next : last.getNext()) {
                             if(next.equals(recipe.getKey())){
-                                if(recipes_to_render.size() <= (current_level))recipes_to_render.set(current_level, new ArrayList<>());
+                                if(recipes_to_render.size() <= (current_level))recipes_to_render.add(new ArrayList<>());
                                 recipes_to_render.get(current_level).add(recipe.getValue());
                                 iterator.remove();
                                 found = true;
