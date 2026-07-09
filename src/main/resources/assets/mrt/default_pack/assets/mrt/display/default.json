@@ -1,0 +1,6 @@
+{
+  "name": "mrt.tanks.default",
+  "model": "mrt:default.json",
+  "texture": "mrt:default.png",
+  "icon": "mrt:default_icon.png"
+}

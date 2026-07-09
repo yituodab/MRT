@@ -21,6 +21,7 @@ public class ModCreativeTab {
                             item.getOrCreateTag().putString(TankBoxDataManager.TANK_ID, tankDataEntry.getKey().toString());
                             output.accept(item);
                         });
+                        output.accept(ModItems.VEHICLE_MAKER.get());
                     })
                     .build());
     private static ItemStack getIcon(){

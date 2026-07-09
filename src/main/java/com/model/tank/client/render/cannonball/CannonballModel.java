@@ -9,12 +9,12 @@ public class CannonballModel extends GeoModel<CannonballEntity> {
 
     @Override
     public ResourceLocation getModelResource(CannonballEntity cannonballEntity) {
-        return new ResourceLocation(ModularTank.MODID, "geo/cannonballs/"+cannonballEntity.type.toString().toLowerCase()+".json");
+        return new ResourceLocation(ModularTank.MODID, "geo/cannonballs/"+ cannonballEntity.getCannonballType().toString().toLowerCase()+".json");
     }
 
     @Override
     public ResourceLocation getTextureResource(CannonballEntity cannonballEntity) {
-        return new ResourceLocation(ModularTank.MODID,"textures/cannonballs/"+cannonballEntity.type.toString().toLowerCase()+".png");
+        return new ResourceLocation(ModularTank.MODID,"textures/cannonballs/"+ cannonballEntity.getCannonballType().toString().toLowerCase()+".png");
     }
 
     @Override

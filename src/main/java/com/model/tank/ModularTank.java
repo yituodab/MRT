@@ -1,17 +1,17 @@
 package com.model.tank;
 
+import com.model.tank.client.gui.VehicleMakerGui;
 import com.model.tank.client.key.AimKey;
 import com.model.tank.client.key.MoveKey;
 import com.model.tank.client.key.ShootKey;
 import com.model.tank.client.render.tank.TankRender;
 import com.model.tank.client.render.cannonball.CannonballRender;
 import com.model.tank.client.gui.TankHUD;
-import com.model.tank.init.ModEntities;
-import com.model.tank.init.ModItems;
-import com.model.tank.init.ModCreativeTab;
+import com.model.tank.init.*;
 import com.model.tank.network.NetWorkManager;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
@@ -44,6 +44,9 @@ public class ModularTank
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::commonSetup);
         ModItems.ITEMS.register(modEventBus);
+        ModBlocks.BLOCKS.register(modEventBus);
+        ModBlockEntity.BLOCK_TYPES.register(modEventBus);
+        ModBlockEntity.MENU_TYPES.register(modEventBus);
         ModEntities.ENTITY_TYPES.register(modEventBus);
         ModCreativeTab.CREATIVE_MODE_TABS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
@@ -74,8 +77,9 @@ public class ModularTank
         public static void onClientSetup(FMLClientSetupEvent event)
         {
             event.enqueueWork(()->{
-                    EntityRenderers.register(ModEntities.TANKENTITY.get(), TankRender::new);
-                    EntityRenderers.register(ModEntities.CANNONBALLENTITY.get(), CannonballRender::new);
+                MenuScreens.register(ModBlockEntity.VEHICLE_MAKER_MENU_TYPE.get(), VehicleMakerGui::new);
+                EntityRenderers.register(ModEntities.TANKENTITY.get(), TankRender::new);
+                EntityRenderers.register(ModEntities.CANNONBALLENTITY.get(), CannonballRender::new);
             });
         }
     }

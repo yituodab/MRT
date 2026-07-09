@@ -23,8 +23,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
@@ -41,10 +39,10 @@ public class CannonballEntity extends Projectile implements GeoEntity, IEntityAd
     public CannonballEntity(EntityType<? extends Projectile> entityType, Level level, Entity owner, CannonballData data, ResourceLocation id, float XRot, float YRot, Vec3 position){
         super(entityType, level);
         this.setOwner(owner);
-        this.shoot(owner, XRot, YRot);
         this.setPos(position);
         this.id = id;
         fromCannonballData(data);
+        this.shoot(owner, XRot, YRot);
     }
     public CannonballEntity(EntityType<? extends Projectile> p_37248_, Level p_37249_) {
         super(p_37248_, p_37249_);
@@ -52,11 +50,11 @@ public class CannonballEntity extends Projectile implements GeoEntity, IEntityAd
     private static final double resistance = 0.01;
     private static final double gravity = 0.49;
     private float entityDamage = 20;
-    private CannonballType type;
+    private CannonballType type = CannonballType.AP;
     private ResourceLocation id;
     private int life = 100;
     private float TNTmass;
-    private double speed;
+    private double speed = 1000;
 
     public void fromCannonballData(CannonballData data){
         this.entityDamage = data.getEntityDamage();
@@ -83,7 +81,6 @@ public class CannonballEntity extends Projectile implements GeoEntity, IEntityAd
             this.discard();
         }
     }
-    @OnlyIn(Dist.DEDICATED_SERVER)
     public void onServerTick(){
         Vec3 startPos = this.position();
         Vec3 endPos = this.position().add(this.getDeltaMovement());
@@ -165,6 +162,10 @@ public class CannonballEntity extends Projectile implements GeoEntity, IEntityAd
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+    }
+
+    public CannonballType getCannonballType() {
+        return type;
     }
 
     @Override

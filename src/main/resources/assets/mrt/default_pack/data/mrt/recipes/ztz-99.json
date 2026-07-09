@@ -1,0 +1,11 @@
+{
+  "materials": [
+    {
+      "item": {
+        "item": "minecraft:iron_ingot"
+      },
+      "count": 5
+    }
+  ],
+  "output": "mrt:ztz-99"
+}
