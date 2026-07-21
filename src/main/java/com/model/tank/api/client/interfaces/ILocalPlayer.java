@@ -6,4 +6,8 @@ public interface ILocalPlayer {
     void aim(boolean aim);
 
     boolean isAim();
+
+    void checkModules(boolean isChecking);
+
+    boolean isCheckingModules();
 }

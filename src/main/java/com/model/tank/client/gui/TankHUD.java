@@ -29,6 +29,8 @@ public class TankHUD implements IGuiOverlay {
             if(((ILocalPlayer)player).isAim())
                 renderTankAim(guiGraphics, width, height);
             else renderCrosshairs(guiGraphics,width,height,tank,player);
+//            if(((ILocalPlayer)player).isCheckingModules())
+//                renderModules(guiGraphics,tank , width, height);
             renderTankCannonballs(guiGraphics, tank, width, height);
         }
     }
@@ -80,5 +82,11 @@ public class TankHUD implements IGuiOverlay {
             guiGraphics.drawString(font, String.valueOf(number), renderStartX + number * 32 + 14, renderStartY + 23, 0xFFFFFF, false);
             number += 1;
         }
-    }
+      }
+//    public void renderModules(GuiGraphics guiGraphics, TankEntity tank, int width, int height){
+//        PoseStack poseStack = guiGraphics.pose();
+//        EntityRenderer
+//        poseStack.pushPose();
+//        poseStack.popPose();
+//    }
 }

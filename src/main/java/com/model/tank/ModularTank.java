@@ -2,6 +2,7 @@ package com.model.tank;
 
 import com.model.tank.client.gui.VehicleMakerGui;
 import com.model.tank.client.key.AimKey;
+import com.model.tank.client.key.CheckModulesKey;
 import com.model.tank.client.key.MoveKey;
 import com.model.tank.client.key.ShootKey;
 import com.model.tank.client.render.tank.TankRender;
@@ -63,6 +64,7 @@ public class ModularTank
         @SubscribeEvent
         public static void keyRegister(RegisterKeyMappingsEvent event){
             event.register(AimKey.AIM_KEY);
+            event.register(CheckModulesKey.CHECK_MODULES_KEY);
             event.register(ShootKey.SHOOT_KEY);
             event.register(MoveKey.UP_KEY);
             event.register(MoveKey.DOWN_KEY);

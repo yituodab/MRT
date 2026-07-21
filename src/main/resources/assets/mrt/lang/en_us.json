@@ -25,5 +25,6 @@
   "death.attack.mrt.ignite": "%1$s 死于 %2$s 引起的车辆起火",
   "death.attack.mrt.ignite.item": "%1$s 死于 %2$s 引起的车辆起火",
   "death.attack.mrt.on_hit_ammo": "%1$s 死于 %2$s 引起的殉爆",
-  "death.attack.mrt.on_hit_ammo.item": "%1$s 死于 %2$s 引起的殉爆"
+  "death.attack.mrt.on_hit_ammo.item": "%1$s 死于 %2$s 引起的殉爆",
+  "key.mrt.check_modules": "check modules"
 }

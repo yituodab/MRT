@@ -40,6 +40,16 @@ public class Module {
     public Vec3 getPosition() {
         return position;
     }
+    public double[] getPositionToArray(){
+        return new double[]{position.x,position.y,position.z};
+    }
+    public Vec3 getSize() {
+        return size;
+    }
+    public double[] getSizeToArray(){
+        return new double[]{size.x,size.y,size.z};
+    }
+
     // 炮
     @SerializedName("reload_time")
     private float reloadTime = 0;
